@@ -57,3 +57,76 @@ Verificação Regular: Em caso de atualizações de bibliotecas ou inclusão de 
 7. Conclusão
 A auditoria conduzida demonstrou que o projeto "Inteligência Artificial e Previsões" está em conformidade com as licenças das bibliotecas utilizadas. Não foram identificados problemas críticos, e o uso das bibliotecas é considerado seguro dentro dos limites propostos pelas licenças. Recomenda-se a revisão periódica das dependências e a documentação clara das licenças para garantir a continuidade da conformidade.
 
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Projeto: SecureApp
+Ferramenta Utilizada: Semgrep
+Data da Auditoria: 27 de Agosto de 2024
+
+1. Execução da Análise de Segurança
+Você executa o Semgrep no projeto SecureApp. Durante a execução, a ferramenta percorre todo o código em busca de padrões de código inseguros, como uso de funções perigosas ou más práticas de segurança.
+
+Código Analisado:
+
+python
+Copiar código
+# handlers.py
+import os
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.form.get("username")
+    password = request.form.get("password")
+    
+    if eval(f"check_credentials('{username}', '{password}')"):
+        return "Login successful!"
+    else:
+        return "Invalid credentials."
+
+def check_credentials(user, pwd):
+    # Simulação de verificação (insegura)
+    return user == "admin" and pwd == "password123"
+
+if __name__ == "__main__":
+    app.run()
+2. Relatório de Vulnerabilidades Detectadas
+Após a análise, o Semgrep identifica algumas vulnerabilidades significativas:
+
+Relatório de Vulnerabilidades:
+
+Vulnerabilidade Detectada: Uso Inseguro de eval
+
+Localização: handlers.py:10
+Descrição: O código utiliza a função eval para avaliar uma string como expressão Python. Isso é extremamente perigoso, pois permite a execução arbitrária de código. No cenário atual, qualquer input de usuário pode ser injetado e executado no servidor.
+Severidade: Crítica
+Impacto: Execução remota de código (RCE) — um atacante pode comprometer totalmente o sistema.
+Recomendação: Evitar o uso de eval. Substituir por lógica segura, como comparação direta ou métodos como ast.literal_eval.
+Vulnerabilidade Detectada: Armazenamento de Credenciais Hardcoded
+
+Localização: handlers.py:17
+Descrição: As credenciais de administrador (username: "admin", password: "password123") estão embutidas no código. Isso facilita o acesso não autorizado em caso de exposição do código.
+Severidade: Alta
+Impacto: Comprometimento das credenciais administrativas e possível acesso indevido ao sistema.
+Recomendação: Armazenar as credenciais em variáveis de ambiente ou usar um gerenciador seguro.
+Vulnerabilidade Detectada: Falta de Validação Adequada de Input
+
+Localização: handlers.py:7
+Descrição: O input de username e password é diretamente manipulado sem validação adequada, o que abre portas para ataques de injeção, especialmente em combinação com o uso de eval.
+Severidade: Alta
+Impacto: Injeção de comandos maliciosos, comprometendo a segurança do sistema.
+Recomendação: Implementar validação rigorosa e sanitização de input, além de usar métodos seguros para avaliar as credenciais.
+3. Resumo Executivo
+O projeto SecureApp apresenta vulnerabilidades críticas que comprometem a segurança do sistema:
+
+Uso Inseguro de eval: A aplicação permite a execução arbitrária de código, representando uma séria ameaça de segurança.
+Credenciais Hardcoded: As credenciais administrativas estão embutidas no código, facilitando o acesso não autorizado.
+Falta de Validação de Input: A ausência de sanitização do input de usuários expõe o sistema a ataques de injeção.
+Conclusão: O projeto necessita de revisões urgentes para corrigir essas falhas e garantir a segurança da aplicação.
+
+4. Recomendações
+Refatorar o uso de eval: Substituir eval por uma lógica segura que não envolva a execução dinâmica de código.
+Gerenciar Credenciais com Segurança: Mover as credenciais para variáveis de ambiente ou utilizar um serviço de gerenciamento de segredos.
+Implementar Validação de Input: Adotar práticas rigorosas de validação e sanitização de dados recebidos do usuário.
